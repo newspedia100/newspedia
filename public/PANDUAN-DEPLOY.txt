@@ -1,0 +1,94 @@
+# =====================================================
+# PANDUAN DEPLOYMENT NEWSPEDIA - LANGKAH DEMI LANGKAH
+# =====================================================
+
+## FILE YANG PERLU ANDA BUAT:
+
+### 1. File .env (di folder project)
+Buat file baru dengan nama ".env" (tanpa tanda kutip), isi dengan:
+
+```
+DATABASE_URL="postgresql://postgres.kbryqmfchrqzxzglbymz:newspedia123@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres"
+DIRECT_URL="postgresql://postgres.kbryqmfchrqzxzglbymz:newspedia123@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+NEXT_PUBLIC_SITE_URL="https://newspedia.my.id"
+NEXT_PUBLIC_SITE_NAME="NewsPedia"
+```
+
+## LANGKAH-LANGKAH:
+
+### LANGKAH 1: Download & Extract Project
+1. Download file newspedia-project.zip
+2. Extract ke folder baru, contoh: C:\newspedia
+
+### LANGKAH 2: Install Software (kalau belum punya)
+1. Install Node.js dari nodejs.org (pilih LTS)
+2. Install Git dari git-scm.com
+3. Restart komputer setelah install
+
+### LANGKAH 3: Buat File .env
+1. Buka folder project di File Explorer
+2. Klik kanan > New > Text Document
+3. Namai: .env (hapus .txt)
+4. Paste isi dari atas tadi
+5. Save
+
+### LANGKAH 4: Buka Terminal di Folder Project
+1. Di File Explorer, klik kanan pada folder
+2. Pilih "Open in Terminal" atau "Git Bash Here"
+
+### LANGKAH 5: Install Dependencies
+Ketik di terminal:
+```
+npm install
+```
+Tunggu sampai selesai (2-5 menit)
+
+### LANGKAH 6: Push ke GitHub
+Ketik di terminal satu per satu:
+
+```
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/newspedia100/newspedia.git
+git push -u origin main
+```
+
+### LANGKAH 7: Deploy ke Vercel
+1. Buka vercel.com
+2. Login dengan GitHub
+3. Klik "Add New..." > "Project"
+4. Pilih repository "newspedia"
+5. Klik "Import"
+6. Klik "Environment Variables" dan tambahkan:
+
+   DATABASE_URL:
+   postgresql://postgres.kbryqmfchrqzxzglbymz:newspedia123@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres
+
+   DIRECT_URL:
+   postgresql://postgres.kbryqmfchrqzxzglbymz:newspedia123@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+
+7. Klik "Deploy"
+8. Tunggu 3-5 menit
+
+### LANGKAH 8: Setup Domain
+1. Di Vercel, pergi ke Settings > Domains
+2. Ketik: newspedia.my.id
+3. Klik Add
+
+4. Buka Rumahweb control panel
+5. Pilih domain newspedia.my.id
+6. Pergi ke DNS Management
+7. Tambahkan:
+   - Type: A | Name: @ | Value: 76.76.21.21
+   - Type: CNAME | Name: www | Value: cname.vercel-dns.com
+
+8. Tunggu 1-24 jam untuk propagasi DNS
+
+## LOGIN ADMIN:
+- URL: https://newspedia.my.id/admin/login
+- Username: admin
+- Password: admin123
+
+## GANTI PASSWORD ADMIN SETELAH LOGIN PERTAMA!

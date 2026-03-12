@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Article Categories
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  color       String    @default("teal") // teal, cyan, orange, purple
+  icon        String?
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@map("categories")
+}
+
+// Articles
+model Article {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String    // Short description for cards
+  content     String    // Full article content (markdown or HTML)
+  imageUrl    String?   // Featured image URL
+  imageAlt    String?
+  author      String    @default("NewsPedia Team")
+  authorAvatar String?
+  readTime    Int       @default(5) // in minutes
+  views       Int       @default(0)
+  isFeatured  Boolean   @default(false)
+  isPublished Boolean   @default(true)
+  publishedAt DateTime  @default(now())
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  tags        String?   // Comma-separated tags
+  metaTitle   String?   // SEO title
+  metaDesc    String?   // SEO description
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+// Newsletter Subscribers
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  isActive  Boolean  @default(true)
+  source    String?  // Where they subscribed from
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscribers")
+}
+
+// Ad Slots Configuration (for management)
+model AdSlot {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "leaderboard", "in-article", "below-article"
+  position    String   // top, middle, bottom, sidebar
+  adCode      String?  // Google AdSense code
+  isActive    Boolean  @default(true)
+  width       Int?
+  height      Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ad_slots")
+}
+
+// Marquee/Running News Text
+model MarqueeNews {
+  id        String   @id @default(cuid())
+  text      String   // News text to display
+  link      String?  // Optional link URL
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)  // Display order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("marquee_news")
+}
+
+// Admin Users for Dashboard Access
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // Hashed password
+  name      String?
+  email     String?
+  role      String   @default("admin") // admin, editor, etc.
+  lastLogin DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// Sessions for Admin Authentication
+model AdminSession {
+  id        String   @id @default(cuid())
+  adminId   String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([token])
+  @@map("admin_sessions")
+}

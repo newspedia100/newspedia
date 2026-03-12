@@ -1,0 +1,16 @@
+# Robots.txt for NewsPedia
+# https://newspedia.my.id
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://newspedia.my.id/sitemap.xml
+
+# Disallow admin and api routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+
+# Allow all public assets
+Allow: /uploads/
