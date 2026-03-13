@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase, STORAGE_BUCKET } from "@/lib/supabase";
+import { supabase, STORAGE_BUCKET, isSupabaseConfigured } from "@/lib/supabase";
 
 // POST - Upload image to Supabase Storage
 export async function POST(request: NextRequest) {
   try {
     // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      // Fallback: Return a placeholder response for local development
+    if (!isSupabaseConfigured() || !supabase) {
       return NextResponse.json({
         success: false,
-        error: "Storage not configured. Please set up Supabase Storage.",
-        instructions: "1. Go to Supabase Dashboard > Storage > Create bucket named 'uploads'\n2. Set bucket to public\n3. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to environment variables"
+        error: "Storage belum dikonfigurasi. Silakan setup Supabase Storage terlebih dahulu.",
+        instructions: "1. Buka Supabase Dashboard > Storage > Buat bucket 'uploads'\n2. Set bucket ke public\n3. Tambahkan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY di Environment Variables"
       }, { status: 500 });
     }
 
@@ -19,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: "No file provided" },
+        { error: "Tidak ada file yang dipilih" },
         { status: 400 }
       );
     }
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed" },
+        { error: "Tipe file tidak didukung. Hanya JPEG, PNG, GIF, dan WebP yang diizinkan" },
         { status: 400 }
       );
     }
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "File size too large. Maximum 10MB allowed" },
+        { error: "File terlalu besar. Maksimum 10MB" },
         { status: 400 }
       );
     }
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Supabase upload error:", error);
       return NextResponse.json(
-        { error: "Failed to upload file: " + error.message },
+        { error: "Gagal upload file: " + error.message },
         { status: 500 }
       );
     }
@@ -71,13 +70,11 @@ export async function POST(request: NextRequest) {
     // Get public URL
     const { data: urlData } = supabase.storage
       .from(STORAGE_BUCKET)
-      .getPublicUrl(filename);
-
-    const imageUrl = urlData.publicUrl;
+      .getPublicUrl(data.path);
 
     return NextResponse.json({
       success: true,
-      imageUrl,
+      imageUrl: urlData.publicUrl,
       filename,
       size: file.size,
       type: file.type,
@@ -85,7 +82,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: "Gagal upload file" },
       { status: 500 }
     );
   }
@@ -94,7 +91,7 @@ export async function POST(request: NextRequest) {
 // GET - List uploaded images from Supabase Storage
 export async function GET() {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!isSupabaseConfigured() || !supabase) {
       return NextResponse.json({ images: [] });
     }
 
