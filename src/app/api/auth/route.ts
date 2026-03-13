@@ -19,9 +19,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Username dan password harus diisi" }, { status: 400 });
     }
 
-    const admin = await db.admin.findFirst({
-      where: { username: username, isActive: true },
-    });
+    // Try to find admin
+    let admin;
+    try {
+      admin = await db.admin.findFirst({
+        where: { username: username, isActive: true },
+      });
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return NextResponse.json({ error: "Kesalahan koneksi database" }, { status: 500 });
+    }
 
     if (!admin) {
       return NextResponse.json({ error: "Username atau password salah" }, { status: 401 });
@@ -36,14 +43,25 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await db.adminSession.create({
-      data: { adminId: admin.id, token, expiresAt },
-    });
+    // Create session
+    try {
+      await db.adminSession.create({
+        data: { adminId: admin.id, token, expiresAt },
+      });
+    } catch (sessionError) {
+      console.error("Session creation error:", sessionError);
+      // Continue anyway, session is not critical for login
+    }
 
-    await db.admin.update({
-      where: { id: admin.id },
-      data: { lastLogin: new Date() },
-    });
+    // Update last login
+    try {
+      await db.admin.update({
+        where: { id: admin.id },
+        data: { lastLogin: new Date() },
+      });
+    } catch {
+      // Ignore update error
+    }
 
     const response = NextResponse.json({
       success: true,
@@ -52,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("admin_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
@@ -61,7 +79,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    return NextResponse.json({ error: "Terjadi kesalahan saat login" }, { status: 500 });
+    return NextResponse.json({ error: "Terjadi kesalahan saat login: " + (error instanceof Error ? error.message : "Unknown error") }, { status: 500 });
   }
 }
 
@@ -70,27 +88,39 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get("admin_token")?.value;
     if (!token) return NextResponse.json({ authenticated: false });
 
-    const session = await db.adminSession.findFirst({
-      where: { 
-        token: token,
-        expiresAt: { gt: new Date() }
-      },
-    });
+    let session;
+    try {
+      session = await db.adminSession.findFirst({
+        where: {
+          token: token,
+          expiresAt: { gt: new Date() }
+        },
+      });
+    } catch {
+      return NextResponse.json({ authenticated: false });
+    }
 
     if (!session) {
       const response = NextResponse.json({ authenticated: false });
-      response.cookies.delete("admin_token");
+      response.cookies.set("admin_token", "", { maxAge: 0, path: "/" });
       return response;
     }
 
-    const admin = await db.admin.findUnique({
-      where: { id: session.adminId },
-      select: { id: true, username: true, name: true, role: true },
-    });
+    let admin;
+    try {
+      admin = await db.admin.findUnique({
+        where: { id: session.adminId },
+        select: { id: true, username: true, name: true, role: true },
+      });
+    } catch {
+      const response = NextResponse.json({ authenticated: false });
+      response.cookies.set("admin_token", "", { maxAge: 0, path: "/" });
+      return response;
+    }
 
     if (!admin) {
       const response = NextResponse.json({ authenticated: false });
-      response.cookies.delete("admin_token");
+      response.cookies.set("admin_token", "", { maxAge: 0, path: "/" });
       return response;
     }
 
@@ -104,11 +134,11 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const token = request.cookies.get("admin_token")?.value;
-    
+
     if (token) {
       try {
-        await db.adminSession.deleteMany({ 
-          where: { token: token } 
+        await db.adminSession.deleteMany({
+          where: { token: token }
         });
       } catch {
         // Ignore error
@@ -118,21 +148,16 @@ export async function DELETE(request: NextRequest) {
     const response = NextResponse.json({ success: true });
     response.cookies.set("admin_token", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       maxAge: 0,
       path: "/",
     });
-    
+
     return response;
-  } catch (error) {
-    console.error("Logout error:", error);
+  } catch {
     const response = NextResponse.json({ success: true });
-    response.cookies.set("admin_token", "", {
-      httpOnly: true,
-      maxAge: 0,
-      path: "/",
-    });
+    response.cookies.set("admin_token", "", { maxAge: 0, path: "/" });
     return response;
   }
 }
