@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-// GET - Fetch all marquee news
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -18,7 +17,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create new marquee news
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -41,7 +39,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update marquee news
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -62,7 +59,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Delete marquee news
 export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
