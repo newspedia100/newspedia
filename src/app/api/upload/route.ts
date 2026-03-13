@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { supabase, STORAGE_BUCKET } from "@/lib/supabase";
 
-// POST - Upload image
+// POST - Upload image to Supabase Storage
 export async function POST(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      // Fallback: Return a placeholder response for local development
+      return NextResponse.json({
+        success: false,
+        error: "Storage not configured. Please set up Supabase Storage.",
+        instructions: "1. Go to Supabase Dashboard > Storage > Create bucket named 'uploads'\n2. Set bucket to public\n3. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to environment variables"
+      }, { status: 500 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -39,18 +48,32 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split(".").pop() || "jpg";
     const filename = `${timestamp}-${randomString}.${extension}`;
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
-    // Write file to public/uploads
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filePath = path.join(uploadsDir, filename);
-    await writeFile(filePath, buffer);
 
-    // Return the public URL
-    const imageUrl = `/uploads/${filename}`;
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Supabase upload error:", error);
+      return NextResponse.json(
+        { error: "Failed to upload file: " + error.message },
+        { status: 500 }
+      );
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filename);
+
+    const imageUrl = urlData.publicUrl;
 
     return NextResponse.json({
       success: true,
@@ -68,35 +91,45 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - List uploaded images
+// GET - List uploaded images from Supabase Storage
 export async function GET() {
   try {
-    const { readdir, stat } = await import("fs/promises");
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ images: [] });
+    }
 
-    const files = await readdir(uploadsDir);
-    const imageFiles = files.filter((file) =>
-      /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
+    const { data, error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .list("", {
+        limit: 100,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+
+    if (error) {
+      console.error("Supabase list error:", error);
+      return NextResponse.json({ images: [] });
+    }
+
+    // Filter only image files
+    const imageFiles = (data || []).filter((file) =>
+      /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
     );
 
-    const images = await Promise.all(
-      imageFiles.map(async (file) => {
-        const filePath = path.join(uploadsDir, file);
-        const stats = await stat(filePath);
-        return {
-          filename: file,
-          url: `/uploads/${file}`,
-          size: stats.size,
-          createdAt: stats.birthtime,
-        };
-      })
-    );
+    // Get public URLs for all images
+    const images = imageFiles.map((file) => {
+      const { data: urlData } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(file.name);
 
-    return NextResponse.json({
-      images: images.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      ),
+      return {
+        filename: file.name,
+        url: urlData.publicUrl,
+        size: file.metadata?.size || 0,
+        createdAt: file.created_at,
+      };
     });
+
+    return NextResponse.json({ images });
   } catch {
     return NextResponse.json({ images: [] });
   }

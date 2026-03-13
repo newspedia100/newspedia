@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
+import { Mail, CheckCircle2, Sparkles, Loader2, XCircle } from "lucide-react";
 
 interface NewsletterModalProps {
   open: boolean;
@@ -21,25 +21,53 @@ interface NewsletterModalProps {
 
 export function NewsletterModal({ open, onOpenChange, email: initialEmail }: NewsletterModalProps) {
   const [email, setEmail] = useState(initialEmail || "");
-  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [isOpen, setIsOpen] = useState(open);
+
+  // Update email when initialEmail changes
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
+
+  // Sync open state
+  useEffect(() => {
+    setIsOpen(open);
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setStatus("success");
-    
-    // Auto close after success
-    setTimeout(() => {
-      setIsOpen(false);
-      onOpenChange(false);
-      setStatus("idle");
-      setEmail("");
-    }, 2000);
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal berlangganan");
+      }
+
+      setStatus("success");
+
+      // Auto close after success
+      setTimeout(() => {
+        setIsOpen(false);
+        onOpenChange(false);
+        setStatus("idle");
+        setEmail("");
+      }, 2500);
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "Terjadi kesalahan");
+    }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -47,6 +75,7 @@ export function NewsletterModal({ open, onOpenChange, email: initialEmail }: New
     onOpenChange(newOpen);
     if (!newOpen) {
       setStatus("idle");
+      setErrorMessage("");
     }
   };
 
@@ -76,6 +105,21 @@ export function NewsletterModal({ open, onOpenChange, email: initialEmail }: New
               <p className="text-sm text-muted-foreground mt-2">
                 Cek inbox Anda untuk konfirmasi
               </p>
+            </motion.div>
+          ) : status === "error" ? (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="text-center py-8"
+            >
+              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold mb-2">Gagal</h2>
+              <p className="text-muted-foreground mb-4">{errorMessage}</p>
+              <Button onClick={() => setStatus("idle")} variant="outline">
+                Coba Lagi
+              </Button>
             </motion.div>
           ) : (
             <motion.div
