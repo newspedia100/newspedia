@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { db } from "@/lib/db";
 
 // ============================================
-// Authentication API Route
+// Authentication API Route (PostgreSQL)
 // ============================================
 
 // Password hashing
@@ -16,34 +16,9 @@ function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Create default admin lazily
-let adminEnsured = false;
-async function ensureDefaultAdmin() {
-  if (adminEnsured) return;
-  adminEnsured = true;
-  
-  try {
-    // Use raw query to check admin count
-    const result = await db.$queryRaw`SELECT COUNT(*) as count FROM admins`;
-    const count = Number((result as Array<{ count: bigint }>)[0]?.count || 0);
-    
-    if (count === 0) {
-      const hashedPassword = hashPassword("admin123");
-      await db.$executeRaw`INSERT INTO admins (id, username, password, name, role, isActive, createdAt, updatedAt) 
-        VALUES (${crypto.randomUUID()}, 'admin', ${hashedPassword}, 'Administrator', 'admin', 1, datetime('now'), datetime('now'))`;
-      console.log("Default admin created: username=admin, password=admin123");
-    }
-  } catch (error) {
-    console.error("Error ensuring default admin:", error);
-  }
-}
-
 // POST - Login
 export async function POST(request: NextRequest) {
   try {
-    // Ensure admin exists
-    await ensureDefaultAdmin();
-    
     const body = await request.json();
     const { username, password } = body;
 
@@ -54,17 +29,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find admin using raw query
-    const admins = await db.$queryRaw`SELECT * FROM admins WHERE username = ${username} AND isActive = 1 LIMIT 1`;
-    const admin = (admins as Array<{
-      id: string;
-      username: string;
-      password: string;
-      name: string | null;
-      role: string;
-      isActive: boolean;
-      lastLogin: Date | null;
-    }>)[0];
+    // Find admin using Prisma
+    const admin = await db.admin.findFirst({
+      where: {
+        username: username,
+        isActive: true,
+      },
+    });
 
     if (!admin) {
       return NextResponse.json(
@@ -87,15 +58,19 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await db.$executeRaw`INSERT INTO admin_sessions (id, adminId, token, expiresAt, createdAt) 
-      VALUES (${crypto.randomUUID()}, ${admin.id}, ${token}, ${expiresAt.toISOString()}, datetime('now'))`;
+    await db.adminSession.create({
+      data: {
+        adminId: admin.id,
+        token: token,
+        expiresAt: expiresAt,
+      },
+    });
 
     // Update last login
-    try {
-      await db.$executeRaw`UPDATE admins SET lastLogin = datetime('now') WHERE id = ${admin.id}`;
-    } catch {
-      // Ignore update error
-    }
+    await db.admin.update({
+      where: { id: admin.id },
+      data: { lastLogin: new Date() },
+    });
 
     // Set cookie and return success
     const response = NextResponse.json({
@@ -130,26 +105,30 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get("admin_token")?.value;
-    
+
     if (!token) {
       return NextResponse.json({ authenticated: false });
     }
 
-    // Validate session using raw query
-    const sessions = await db.$queryRaw`
-      SELECT s.*, a.id as adminId, a.username, a.name, a.role
-      FROM admin_sessions s
-      JOIN admins a ON s.adminId = a.id
-      WHERE s.token = ${token} AND s.expiresAt > datetime('now')
-      LIMIT 1
-    `;
-
-    const session = (sessions as Array<{
-      adminId: string;
-      username: string;
-      name: string | null;
-      role: string;
-    }>)[0];
+    // Validate session using Prisma
+    const session = await db.adminSession.findFirst({
+      where: {
+        token: token,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        admin: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+    });
 
     if (!session) {
       const response = NextResponse.json({ authenticated: false });
@@ -160,10 +139,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       authenticated: true,
       admin: {
-        id: session.adminId,
-        username: session.username,
-        name: session.name,
-        role: session.role,
+        id: session.admin.id,
+        username: session.admin.username,
+        name: session.admin.name,
+        role: session.admin.role,
       },
     });
   } catch (error) {
@@ -176,18 +155,16 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const token = request.cookies.get("admin_token")?.value;
-    
+
     if (token) {
-      try {
-        await db.$executeRaw`DELETE FROM admin_sessions WHERE token = ${token}`;
-      } catch {
-        // Session might not exist
-      }
+      await db.adminSession.deleteMany({
+        where: { token: token },
+      });
     }
 
     const response = NextResponse.json({ success: true });
     response.cookies.delete("admin_token");
-    
+
     return response;
   } catch (error) {
     console.error("Logout error:", error);
