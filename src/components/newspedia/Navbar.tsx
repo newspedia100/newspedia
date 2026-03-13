@@ -175,7 +175,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
               </Button>
 
               {/* Admin Link */}
-              <Link href="/admin">
+              <Link href="/ruangkerja">
                 <Button
                   variant="ghost"
                   size="icon"
