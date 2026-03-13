@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-// Create a fresh Prisma client instance to avoid caching issues
-const prisma = new PrismaClient({
-  log: ['query'],
-});
+import { db } from "@/lib/db";
 
 // Marquee News API - CRUD operations for running news ticker
 
@@ -16,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const where = activeOnly ? { isActive: true } : {};
 
-    const marqueeNews = await prisma.marqueeNews.findMany({
+    const marqueeNews = await db.marqueeNews.findMany({
       where,
       orderBy: { order: "asc" },
     });
@@ -47,13 +42,13 @@ export async function POST(request: NextRequest) {
     // Get max order if not specified
     let newsOrder = order;
     if (newsOrder === undefined || newsOrder === null) {
-      const maxOrder = await prisma.marqueeNews.aggregate({
+      const maxOrder = await db.marqueeNews.aggregate({
         _max: { order: true },
       });
       newsOrder = (maxOrder._max.order || 0) + 1;
     }
 
-    const marqueeNews = await prisma.marqueeNews.create({
+    const marqueeNews = await db.marqueeNews.create({
       data: {
         text: text.trim(),
         link: link?.trim() || null,
@@ -91,7 +86,7 @@ export async function PUT(request: NextRequest) {
     if (isActive !== undefined) updateData.isActive = isActive;
     if (order !== undefined) updateData.order = order;
 
-    const marqueeNews = await prisma.marqueeNews.update({
+    const marqueeNews = await db.marqueeNews.update({
       where: { id },
       data: updateData,
     });
@@ -119,7 +114,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.marqueeNews.delete({
+    await db.marqueeNews.delete({
       where: { id },
     });
 
