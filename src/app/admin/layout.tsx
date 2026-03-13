@@ -104,13 +104,18 @@ export default function AdminLayout({
       .catch(console.error);
   }, [authenticated, pathname]);
 
-  // Logout handler
+    // Logout handler
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth", { method: "DELETE" });
-      router.push("/admin/login");
+      const res = await fetch("/api/auth", { method: "DELETE" });
+      if (res.ok) {
+        router.push("/admin/login");
+      } else {
+        router.push("/admin/login");
+      }
     } catch (error) {
       console.error("Logout error:", error);
+      router.push("/admin/login");
     }
   };
 
