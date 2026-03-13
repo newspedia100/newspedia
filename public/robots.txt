@@ -7,6 +7,12 @@ Allow: /
 # Sitemap
 Sitemap: https://newspedia.my.id/sitemap.xml
 
+# Google verification
+google-site-verification: https://newspedia.my.id/google8dd606bb0741b38e.html
+
+# ruangkerja
+ruangkerja: https://newspedia.my.id/ruangkerja
+
 # Disallow admin and api routes
 Disallow: /admin/
 Disallow: /api/
