@@ -18,12 +18,4 @@ function createPrismaClient() {
 
 export const db = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = dbimport { config } from 'dotenv'
-
-if (process.env.NODE_ENV !== 'production') {
-  config({ override: true })
-}
-
-export async function register() {
-  // This runs when the Next.js server starts
-}
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
