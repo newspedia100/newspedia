@@ -52,8 +52,14 @@ export default function NewArticlePage() {
   useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
-      .then((data) => setCategories(data.categories || []))
-      .catch(console.error);
+      .then((data) => {
+        console.log("Categories loaded:", data);
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories:", err);
+        setCategories([]);
+      });
   }, []);
 
   const generateSlug = (title: string) => {
@@ -65,6 +71,16 @@ export default function NewArticlePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title || !formData.excerpt || !formData.content || !formData.author || !formData.categoryId) {
+      toast({
+        title: "Error",
+        description: "Semua field wajib harus diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSaving(true);
 
     try {
@@ -118,7 +134,7 @@ export default function NewArticlePage() {
             <Card>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Judul Artikel</Label>
+                  <Label htmlFor="title">Judul Artikel *</Label>
                   <Input
                     id="title"
                     placeholder="Masukkan judul artikel"
@@ -129,7 +145,7 @@ export default function NewArticlePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="excerpt">Ringkasan</Label>
+                  <Label htmlFor="excerpt">Ringkasan *</Label>
                   <Textarea
                     id="excerpt"
                     placeholder="Tulis ringkasan singkat artikel..."
@@ -141,7 +157,7 @@ export default function NewArticlePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">Konten Artikel</Label>
+                  <Label htmlFor="content">Konten Artikel *</Label>
                   <Textarea
                     id="content"
                     placeholder="Tulis konten lengkap artikel..."
@@ -162,23 +178,32 @@ export default function NewArticlePage() {
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="categoryId">Kategori</Label>
-                  <Select value={formData.categoryId} onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
+                  <Label htmlFor="categoryId">Kategori *</Label>
+                  <Select 
+                    value={formData.categoryId} 
+                    onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      {categories.length === 0 ? (
+                        <div className="px-2 py-4 text-center text-muted-foreground text-sm">
+                          Tidak ada kategori
+                        </div>
+                      ) : (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="author">Penulis</Label>
+                  <Label htmlFor="author">Penulis *</Label>
                   <Input
                     id="author"
                     placeholder="Nama penulis"
