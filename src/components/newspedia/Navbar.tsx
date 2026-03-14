@@ -15,9 +15,7 @@ import {
   Scale,
   Users,
   Video,
-  Settings,
-  Shield
-} from "lucide-react";
+  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import {
@@ -173,19 +171,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
                   <Moon className="w-5 h-5 text-teal-600" />
                 )}
               </Button>
-
-              {/* Admin Link */}
-              <Link href="/ruangkerja">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-orange-100 dark:hover:bg-orange-900/30"
-                  aria-label="Admin Dashboard"
-                >
-                  <Settings className="w-5 h-5 text-orange-500" />
-                </Button>
-              </Link>
-
+             
               {/* Mobile Menu Toggle */}
               <Button
                 variant="ghost"
