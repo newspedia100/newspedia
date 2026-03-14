@@ -94,7 +94,7 @@ const demoMedia: MediaFile[] = [
   },
   {
     id: "7",
-    name: Info-Haji.jpg",
+    name: "Info-Haji.jpg",
     url: "https://photos.app.goo.gl/T6SyZiu1xCsjdJEB9p",
     type: "image",
     size: "234 KB",
