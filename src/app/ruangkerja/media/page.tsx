@@ -95,7 +95,7 @@ const demoMedia: MediaFile[] = [
   {
     id: "7",
     name: "Info-Haji.jpg",
-    url: "https://github.com/newspedia100/newspedia/blob/main/upload/kontenHAJI.jpg?raw=true",
+    url: "https://ibb.co.com/84gD8R4w",
     type: "image",
     size: "234 KB",
     uploadedAt: "2026-03-14",
