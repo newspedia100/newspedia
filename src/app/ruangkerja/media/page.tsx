@@ -92,6 +92,14 @@ const demoMedia: MediaFile[] = [
     size: "234 KB",
     uploadedAt: "2026-03-12",
   },
+  {
+    id: "7",
+    name: Info-Haji.jpg",
+    url: "https://photos.app.goo.gl/T6SyZiu1xCsjdJEB9p",
+    type: "image",
+    size: "234 KB",
+    uploadedAt: "2026-03-14",
+  },
 ];
 
 export default function MediaLibraryPage() {
