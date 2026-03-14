@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
@@ -49,12 +49,12 @@ export default function NewArticlePage() {
     isPublished: true,
   });
 
-  useState(() => {
+  useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
       .catch(console.error);
-  });
+  }, []);
 
   const generateSlug = (title: string) => {
     return title
@@ -123,9 +123,7 @@ export default function NewArticlePage() {
                     id="title"
                     placeholder="Masukkan judul artikel"
                     value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
                   />
                 </div>
@@ -137,9 +135,7 @@ export default function NewArticlePage() {
                     placeholder="Tulis ringkasan singkat artikel..."
                     rows={3}
                     value={formData.excerpt}
-                    onChange={(e) =>
-                      setFormData({ ...formData, excerpt: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                     required
                   />
                 </div>
@@ -151,9 +147,7 @@ export default function NewArticlePage() {
                     placeholder="Tulis konten lengkap artikel..."
                     rows={15}
                     value={formData.content}
-                    onChange={(e) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     required
                   />
                 </div>
@@ -169,12 +163,7 @@ export default function NewArticlePage() {
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="categoryId">Kategori</Label>
-                  <Select
-                    value={formData.categoryId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, categoryId: value })
-                    }
-                  >
+                  <Select value={formData.categoryId} onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
@@ -194,9 +183,7 @@ export default function NewArticlePage() {
                     id="author"
                     placeholder="Nama penulis"
                     value={formData.author}
-                    onChange={(e) =>
-                      setFormData({ ...formData, author: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                     required
                   />
                 </div>
@@ -208,12 +195,7 @@ export default function NewArticlePage() {
                     type="number"
                     min={1}
                     value={formData.readTime}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        readTime: parseInt(e.target.value) || 5,
-                      })
-                    }
+                    onChange={(e) => setFormData({ ...formData, readTime: parseInt(e.target.value) || 5 })}
                   />
                 </div>
 
@@ -223,25 +205,17 @@ export default function NewArticlePage() {
                     id="imageUrl"
                     placeholder="https://example.com/image.jpg"
                     value={formData.imageUrl}
-                    onChange={(e) =>
-                      setFormData({ ...formData, imageUrl: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   />
                   <div className="flex flex-wrap gap-2 mt-2">
                     {sampleImages.map((img, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() =>
-                          setFormData({ ...formData, imageUrl: img })
-                        }
+                        onClick={() => setFormData({ ...formData, imageUrl: img })}
                         className="w-12 h-12 rounded border-2 overflow-hidden hover:border-teal-500 transition-colors"
                       >
-                        <img
-                          src={img}
-                          alt={`Sample ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={img} alt={`Sample ${idx + 1}`} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -256,9 +230,7 @@ export default function NewArticlePage() {
                   <Switch
                     id="isPublished"
                     checked={formData.isPublished}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, isPublished: checked })
-                    }
+                    onCheckedChange={(checked) => setFormData({ ...formData, isPublished: checked })}
                   />
                 </div>
 
@@ -267,9 +239,7 @@ export default function NewArticlePage() {
                   <Switch
                     id="isFeatured"
                     checked={formData.isFeatured}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, isFeatured: checked })
-                    }
+                    onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
                   />
                 </div>
               </CardContent>
