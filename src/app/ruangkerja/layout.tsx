@@ -23,7 +23,6 @@ const navItems = [
   { href: "/ruangkerja", label: "Dashboard", icon: LayoutDashboard },
   { href: "/ruangkerja/new", label: "Tambah Berita", icon: PlusCircle },
   { href: "/ruangkerja/articles", label: "Kelola Berita", icon: FileText },
-  { href: "/ruangkerja/marquee", label: "Marquee News", icon: Radio },
   { href: "/ruangkerja/media", label: "Media Library", icon: ImageIcon },
   { href: "/ruangkerja/subscribers", label: "Subscriber", icon: Users },
   { href: "/ruangkerja/analytics", label: "Analytics", icon: BarChart3 },
@@ -148,7 +147,6 @@ export default function AdminLayout({
               <p className="text-2xl font-bold text-cyan-600">{stats.subscribers}</p>
             </div>
           </div>
-
           {children}
         </div>
       </main>
