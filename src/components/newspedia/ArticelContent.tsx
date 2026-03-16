@@ -84,7 +84,7 @@ export function ArticleContent({ content }: ArticleContentProps) {
               {children}
             </h4>
           ),
-          // Paragraphs
+          // Paragraphs - with proper spacing
           p: ({ children }) => (
             <p className="mb-6 text-lg leading-relaxed text-foreground/90 text-justify hyphens-auto">
               {children}
