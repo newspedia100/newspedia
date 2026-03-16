@@ -40,7 +40,6 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
         <Link href={`/${article.slug}`}>
           <Card className="group overflow-hidden card-hover border-0 shadow-lg">
             <div className="relative aspect-[16/9] overflow-hidden">
-              {/* Using regular img tag for ImgBB compatibility */}
               <img
                 src={article.imageUrl}
                 alt={article.imageAlt}
@@ -53,7 +52,6 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               
-              {/* Video Badge */}
               {isVideo && (
                 <div className="absolute top-4 right-4 bg-rose-500 text-white p-2 rounded-full">
                   <Play className="w-5 h-5 fill-white" />
@@ -98,7 +96,6 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
         <Link href={`/${article.slug}`}>
           <Card className="group overflow-hidden card-hover flex flex-row border-0 shadow-md">
             <div className="relative w-32 h-24 sm:w-48 sm:h-32 flex-shrink-0 overflow-hidden">
-              {/* Using regular img tag for ImgBB compatibility */}
               <img
                 src={article.imageUrl}
                 alt={article.imageAlt}
@@ -145,7 +142,6 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
       <Link href={`/${article.slug}`}>
         <Card className="group overflow-hidden card-hover border-0 shadow-md h-full">
           <div className="relative aspect-[16/10] overflow-hidden">
-            {/* Using regular img tag for ImgBB compatibility */}
             <img
               src={article.imageUrl}
               alt={article.imageAlt}
