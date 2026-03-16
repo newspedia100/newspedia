@@ -93,13 +93,9 @@ export default function ArticlePage({ params }: ArticlePageProps) {
   const [dbArticle, setDbArticle] = useState<DatabaseArticle | null>(null);
   const [fetchComplete, setFetchComplete] = useState(false);
 
-  // Try to get article from static data first
   const staticArticle = getArticleBySlug(slug);
-  
-  // Compute loading state
   const isLoading = !staticArticle && !fetchComplete;
   
-  // Fetch from database if not found in static data
   useEffect(() => {
     if (staticArticle) {
       return;
@@ -133,7 +129,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
     };
   }, [slug, staticArticle]);
 
-  // Convert database article to Article format
   const article: Article | null = staticArticle || (dbArticle ? {
     id: dbArticle.id,
     title: dbArticle.title,
@@ -179,7 +174,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
     window.open(shareUrls[platform], "_blank", "width=600,height=400");
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -199,7 +193,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
     );
   }
 
-  // Not found state
   if (fetchComplete && !article) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -270,7 +263,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
             {/* Meta Info */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              {/* Author */}
               <div className="flex items-center gap-2">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={article.authorAvatar} alt={article.author} />
@@ -371,7 +363,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             className="relative w-full mb-8 bg-muted rounded-xl overflow-hidden"
           >
             <div className="relative w-full aspect-[16/9] sm:aspect-video max-h-[600px]">
-              {/* Using regular img tag instead of Next.js Image for ImgBB compatibility */}
               <img
                 src={article.imageUrl}
                 alt={article.imageAlt || article.title}
