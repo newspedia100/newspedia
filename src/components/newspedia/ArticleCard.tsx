@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Clock, Eye, ArrowRight, Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,12 +14,10 @@ interface ArticleCardProps {
 }
 
 const colorMap: Record<string, string> = {
-  // Tech & Lifestyle
   teknologi: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
   gaming: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   "tips-trik": "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
   "ai-tools": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300",
-  // News
   politik: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
   hukum: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   sosial: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
@@ -43,11 +40,16 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
         <Link href={`/${article.slug}`}>
           <Card className="group overflow-hidden card-hover border-0 shadow-lg">
             <div className="relative aspect-[16/9] overflow-hidden">
-              <Image
+              {/* Using regular img tag for ImgBB compatibility */}
+              <img
                 src={article.imageUrl}
                 alt={article.imageAlt}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading={index < 2 ? "eager" : "lazy"}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop";
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               
@@ -96,11 +98,16 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
         <Link href={`/${article.slug}`}>
           <Card className="group overflow-hidden card-hover flex flex-row border-0 shadow-md">
             <div className="relative w-32 h-24 sm:w-48 sm:h-32 flex-shrink-0 overflow-hidden">
-              <Image
+              {/* Using regular img tag for ImgBB compatibility */}
+              <img
                 src={article.imageUrl}
                 alt={article.imageAlt}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop";
+                }}
               />
               {isVideo && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -138,11 +145,16 @@ export function ArticleCard({ article, variant = "default", index = 0 }: Article
       <Link href={`/${article.slug}`}>
         <Card className="group overflow-hidden card-hover border-0 shadow-md h-full">
           <div className="relative aspect-[16/10] overflow-hidden">
-            <Image
+            {/* Using regular img tag for ImgBB compatibility */}
+            <img
               src={article.imageUrl}
               alt={article.imageAlt}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              loading="lazy"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop";
+              }}
             />
             {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
